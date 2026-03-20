@@ -17,6 +17,10 @@ class Settings: public SettingsBlockBase {
         DEF_SETTING(int, pOffSec, "Pump off seconds", 60, 1);
         DEF_SETTING(int, pDuty, "Pump duty cycle (%)", 50, 1);
 
+        DEF_SETTING(int, fTh, "Humidity  threshold for fan (rel %)", 60, 1);
+        DEF_SETTING(int, fHTh, "Fan hystersis threshold (+-)", 2, 1);
+
+
 };
 
 extern Settings gSettings;

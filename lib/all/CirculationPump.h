@@ -6,10 +6,14 @@
 
 class CirculationPump {
     public:
-        CirculationPump(int pin, uint8_t pwmChannel = 0) : pin_(pin), pwmChannel_(pwmChannel) {}
+        CirculationPump(int pin, 
+            int failsafe_pin,
+            uint8_t pwmChannel = 0) : pin_(pin), failsafe_pin_(failsafe_pin), pwmChannel_(pwmChannel) {}
 
         void begin() {
             pinMode(pin_, OUTPUT);
+            //failsafe_pin_ as input; if LOW, then don't turn on pump for safety (e.g. if water level is too low)
+            pinMode(failsafe_pin_, INPUT_PULLUP);
 
             //init pwm
             ledcSetup(pwmChannel_, 5000, 8); // 5 kHz PWM frequency, 8-bit resolution
@@ -21,6 +25,11 @@ class CirculationPump {
         }
 
         void turnOn() {
+            // Check failsafe pin before turning on pump
+            if (digitalRead(failsafe_pin_) == LOW) {
+                // Failsafe triggered, don't turn on pump
+                return;
+            }
             ledcWrite(pwmChannel_, map(dutyCycle_, 0, 100, 0, 255));
             isOn_ = true;
         }
@@ -46,10 +55,16 @@ class CirculationPump {
                     lastToggleTime_ = currentTime;
                 }
             }
+            //fail safe check: if failsafe pin is triggered, turn off pump immediately
+            if (digitalRead(failsafe_pin_) == LOW) {
+                turnOff();
+                lastToggleTime_ = currentTime; // reset timer to avoid immediate restart
+            }
         }
 
     private:
         int pin_;
+        int failsafe_pin_;
         int dutyCycle_ = 50; // default to 50%
         const uint8_t pwmChannel_;
         bool isOn_ = false;

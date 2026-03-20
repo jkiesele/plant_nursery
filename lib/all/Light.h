@@ -15,7 +15,7 @@ class Light {
             pinMode(pin_, OUTPUT);
 
             //init pwm
-            ledcSetup(pwmChannel_, 5000, 8); // 5 kHz PWM frequency, 8-bit resolution
+            ledcSetup(pwmChannel_, 200, 8); // 200Hz PWM frequency, 8-bit resolution
             ledcAttachPin(pin_, pwmChannel_);
         }
 

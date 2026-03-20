@@ -13,36 +13,33 @@
 #include "Light.h"
 #include "Fan.h"
 #include "HygroControl.h"
+#include "StatusDisplays.h"
 
 
-DebugLED debugLED;
-Scheduler scheduler;
 WiFiWrapper wifi(secret::ssid, secret::password);
 TimeManager timeManager;
 BasicWebInterface webInterface;
 WebOTAUpload webOTAUpload;
 
-CirculationPump pump(5); // example pin for pump control
-Light light(4, &timeManager); // example pin for light control
-Fan fan(18); // example pin for fan 
-HumiditySensor humiditySensor; // placeholder for humidity sensor
-HygroControl hygroControl(&fan, &humiditySensor, 19); // example pin for ambient temperature sensor
+CirculationPump pump(4, 16, 0); //  pwn 0 ; pin for pump control, and failsafe pin (e.g. water level sensor)
+Light light(3, &timeManager, 1); // pwm 1 example pin for light control
+Fan fan(10); // pin 10 for fan 
+HumiditySensor humiditySensor(12); // placeholder for humidity sensor
+
+HygroControl hygroControl(fan, humiditySensor, 18); // example pin for ambient temperature sensor
+
+StatusDisplays statusDisplays(humiditySensor);
 
 void setup() {
 
   SettingsBlockBase::kSettingsPassword = secret::hydroPassword;
-  debugLED.begin();
-  debugLED.setRed(); // indicate setup start
 
-
+  delay(100); // small delay to make sure power is stable
   systemID.begin(); //global
   systemID.setSystemName("plan-nursery"); 
 
   webLog.begin();
-  Serial.begin(115200);
   setLogger(&webLog); 
-  webLog.mirrorToSerial = true; // Enable mirroring to Serial
-  delay(1000);
   gLogger->println("Plant nursery: " + systemID.systemName());
 
   wifi.begin();
@@ -51,30 +48,36 @@ void setup() {
 
   light.begin();
 
-  //
+  // Initialize settings
   gSettings.begin(); // load settings from NVS
 
   //add web displays if needed
   webInterface.addSettings("Settings", &gSettings);
   webInterface.addWebItem(&webOTAUpload);
+  webInterface.addDisplay("Temperature", &statusDisplays.getTemperatureDisplay());
+  webInterface.addDisplay("Humidity", &statusDisplays.getHumidityDisplay());
   // ...
   webInterface.begin();
 
-
+  
   pump.begin();
   fan.begin();
-
+  humiditySensor.begin();
+  hygroControl.begin();
 
   gLogger->println("Setup completed");
   webOTAUpload.markAppValid(); // prevent rollback on next boot
 
-  debugLED.setOff();
 }
 
 void loop() {
-  scheduler.loop();
+  wifi.loop();
+  timeManager.loop(); //empty but for compatibility
   pump.loop();
   light.loop();
+  fan.loop();
+  statusDisplays.loop();
   webInterface.loop();
+  humiditySensor.loop();
   hygroControl.loop();
 }
