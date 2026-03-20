@@ -26,7 +26,7 @@ class CirculationPump {
 
         void turnOn() {
             // Check failsafe pin before turning on pump
-            if (digitalRead(failsafe_pin_) == LOW) {
+            if (unsafe()) {
                 // Failsafe triggered, don't turn on pump
                 return;
             }
@@ -37,6 +37,10 @@ class CirculationPump {
         void turnOff() {
             ledcWrite(pwmChannel_, 0);
             isOn_ = false;
+        }
+
+        bool unsafe() const {
+            return digitalRead(failsafe_pin_) == LOW;
         }
 
         void loop() {
@@ -56,7 +60,7 @@ class CirculationPump {
                 }
             }
             //fail safe check: if failsafe pin is triggered, turn off pump immediately
-            if (digitalRead(failsafe_pin_) == LOW) {
+            if (unsafe()) {
                 turnOff();
                 lastToggleTime_ = currentTime; // reset timer to avoid immediate restart
             }

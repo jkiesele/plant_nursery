@@ -15,6 +15,8 @@
 #include "HygroControl.h"
 #include "StatusDisplays.h"
 
+#define VERSION "1.0c"
+
 
 WiFiWrapper wifi(secret::ssid, secret::password);
 TimeManager timeManager;
@@ -28,7 +30,7 @@ HumiditySensor humiditySensor(12); // placeholder for humidity sensor
 
 HygroControl hygroControl(fan, humiditySensor, 18); // example pin for ambient temperature sensor
 
-StatusDisplays statusDisplays(humiditySensor);
+StatusDisplays statusDisplays(humiditySensor, pump, 2); // example pin for failsafe connection indicator
 
 void setup() {
 
@@ -50,13 +52,16 @@ void setup() {
 
   // Initialize settings
   gSettings.begin(); // load settings from NVS
+  statusDisplays.begin();
 
   //add web displays if needed
   webInterface.addSettings("Settings", &gSettings);
   webInterface.addWebItem(&webOTAUpload);
   webInterface.addDisplay("Temperature", &statusDisplays.getTemperatureDisplay());
   webInterface.addDisplay("Humidity", &statusDisplays.getHumidityDisplay());
-  // ...
+  //pump safe status based on failsafe pin
+  webInterface.addDisplay("Pump safe", &statusDisplays.getPumpSafeDisplay());
+  webInterface.addDisplay("Bottom connected", &statusDisplays.getConnectedDisplay());
   webInterface.begin();
 
   
@@ -65,7 +70,7 @@ void setup() {
   humiditySensor.begin();
   hygroControl.begin();
 
-  gLogger->println("Setup completed");
+  gLogger->println("Setup completed: Revision " + String(VERSION));
   webOTAUpload.markAppValid(); // prevent rollback on next boot
 
 }
