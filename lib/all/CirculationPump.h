@@ -8,7 +8,8 @@ class CirculationPump {
     public:
         CirculationPump(int pin, 
             int failsafe_pin,
-            uint8_t pwmChannel = 0) : pin_(pin), failsafe_pin_(failsafe_pin), pwmChannel_(pwmChannel) {}
+            uint8_t pwmChannel = 0) : pin_(pin), 
+            failsafe_pin_(failsafe_pin), pwmChannel_(pwmChannel) {}
 
         void begin() {
             pinMode(pin_, OUTPUT);
@@ -30,6 +31,7 @@ class CirculationPump {
                 // Failsafe triggered, don't turn on pump
                 return;
             }
+            dutyCycle_ = constrain(gSettings.pDuty, 0, 100); // get duty cycle from settings
             ledcWrite(pwmChannel_, map(dutyCycle_, 0, 100, 0, 255));
             isOn_ = true;
         }

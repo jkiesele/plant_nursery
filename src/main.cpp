@@ -15,7 +15,7 @@
 #include "HygroControl.h"
 #include "StatusDisplays.h"
 
-#define VERSION "1.0c"
+#define VERSION "1.0d"
 
 
 WiFiWrapper wifi(secret::ssid, secret::password);
