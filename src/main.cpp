@@ -38,7 +38,7 @@ void setup() {
 
   delay(100); // small delay to make sure power is stable
   systemID.begin(); //global
-  systemID.setSystemName("plan-nursery"); 
+  systemID.setSystemName("plant-nursery"); 
 
   webLog.begin();
   setLogger(&webLog); 
