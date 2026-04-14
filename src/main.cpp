@@ -16,7 +16,7 @@
 #include "StatusDisplays.h"
 #include "WebButton.h"
 
-#define VERSION "1.0d"
+#define VERSION "1.0e"
 
 
 WiFiWrapper wifi(secret::ssid, secret::password);
