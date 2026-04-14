@@ -45,6 +45,10 @@ class CirculationPump {
             return digitalRead(failsafe_pin_) == LOW;
         }
 
+        void manualRun(int seconds = 3*60) { // default to 3 minutes
+            manualRunTimeRemaining_ = seconds * 1000; // convert to milliseconds
+        }
+
         void loop() {
             uint32_t currentTime = millis();
             //simple state machine logic to turn pump on/off based on time in gSettings (ok if in main loop and sync web server since it's fast and non-blocking)
@@ -61,6 +65,19 @@ class CirculationPump {
                     lastToggleTime_ = currentTime;
                 }
             }
+            
+            //manual
+            if(manualRunTimeRemaining_ > 0) {
+                if (!isOn_) {
+                    turnOn();
+                }
+                manualRunTimeRemaining_ -= (currentTime - lastToggleTime_);
+                lastToggleTime_ = currentTime;
+            } else if (manualRunTimeRemaining_ == 0 && isOn_) {
+                manualRunTimeRemaining_ = -1; // reset to -1 to indicate manual run ended
+                turnOff();
+            }
+
             //fail safe check: if failsafe pin is triggered, turn off pump immediately
             if (unsafe()) {
                 turnOff();
@@ -75,4 +92,5 @@ class CirculationPump {
         const uint8_t pwmChannel_;
         bool isOn_ = false;
         uint32_t lastToggleTime_ = 0;
+        int manualRunTimeRemaining_ = 0; // for future manual override feature
 };

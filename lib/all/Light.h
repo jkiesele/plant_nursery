@@ -20,6 +20,10 @@ class Light {
         }
 
         void loop() {
+            //only actually run every second
+            if (millis() - lastCheckTime_ < 1000) return;
+            lastCheckTime_ = millis();
+            
             if(timeprovider_->isInBetween(gSettings.lOnHour, gSettings.lOffHour)){
                 // turn on light with brightness from settings
                 ledcWrite(pwmChannel_, map(gSettings.lBrightness, 0, 100, 0, 255));
@@ -33,5 +37,6 @@ class Light {
         int pin_;
         TimeManager* timeprovider_;
         const uint8_t pwmChannel_;
+        uint32_t lastCheckTime_ = 0; // for periodic checks if needed
 
 };

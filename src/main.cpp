@@ -14,6 +14,7 @@
 #include "Fan.h"
 #include "HygroControl.h"
 #include "StatusDisplays.h"
+#include "WebButton.h"
 
 #define VERSION "1.0d"
 
@@ -31,6 +32,10 @@ HumiditySensor humiditySensor(12); // placeholder for humidity sensor
 HygroControl hygroControl(fan, humiditySensor, 18); // example pin for ambient temperature sensor
 
 StatusDisplays statusDisplays(humiditySensor, pump, 2); // example pin for failsafe connection indicator
+
+WebButton webPumpManualRun("man_run", "Manual Pump Run", [](){
+    pump.manualRun(); // default to 3 minutes
+});
 
 void setup() {
 
@@ -62,6 +67,7 @@ void setup() {
   //pump safe status based on failsafe pin
   webInterface.addDisplay("Pump safe", &statusDisplays.getPumpSafeDisplay());
   webInterface.addDisplay("Bottom connected", &statusDisplays.getConnectedDisplay());
+  webInterface.addDisplay("Control", &webPumpManualRun);
   webInterface.begin();
 
   
