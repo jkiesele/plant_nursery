@@ -65,15 +65,19 @@ class CirculationPump {
                     lastToggleTime_ = currentTime;
                 }
             }
-            
+
             //manual
             if(manualRunTimeRemaining_ > 0) {
                 if (!isOn_) {
                     turnOn();
                 }
                 manualRunTimeRemaining_ -= (currentTime - lastToggleTime_);
+                if(manualRunTimeRemaining_ < 0) {
+                    manualRunTimeRemaining_ = 0; // clamp to 0 here!
+                }
                 lastToggleTime_ = currentTime;
-            } else if (manualRunTimeRemaining_ == 0 && isOn_) {
+            }
+            if (manualRunTimeRemaining_ == 0 && isOn_) {
                 manualRunTimeRemaining_ = -1; // reset to -1 to indicate manual run ended
                 turnOff();
             }
